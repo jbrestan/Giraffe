@@ -1088,9 +1088,9 @@ let ``GET "/FOO/bar" returns "subroute /foo/bar"`` () =
         GET >=> choose [
             subRouteCi "/foo" (
                 route "/bar" >=> text "subroute /foo/bar")
-            route "/FOO/bar" >=> text "route /FOO/bar"
             setStatusCode 404 >=> text "Not found" ]
 
+    ctx.Items.Returns (new Dictionary<obj,obj>() :> IDictionary<obj,obj>) |> ignore
     ctx.Request.Method.ReturnsForAnyArgs "GET" |> ignore
     ctx.Request.Path.ReturnsForAnyArgs (PathString("/FOO/bar")) |> ignore
     ctx.Response.Body <- new MemoryStream()
