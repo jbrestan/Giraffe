@@ -1075,3 +1075,31 @@ let ``subRoutef: GET "/en/10/api/Julia" returns "Hello Julia! Lang: en, Version:
         | None     -> assertFailf "Result was expected to be %s" expected
         | Some ctx -> Assert.Equal(expected, getBody ctx)
     }
+
+// ---------------------------------
+// subRouteCi Tests
+// ---------------------------------
+
+[<Fact>]
+let ``GET "/FOO/bar" returns "subroute /foo/bar"`` () =
+    let ctx = Substitute.For<HttpContext>()
+    mockJson ctx (Newtonsoft None)
+    let app =
+        GET >=> choose [
+            subRouteCi "/foo" (
+                route "/bar" >=> text "subroute /foo/bar")
+            route "/FOO/bar" >=> text "route /FOO/bar"
+            setStatusCode 404 >=> text "Not found" ]
+
+    ctx.Request.Method.ReturnsForAnyArgs "GET" |> ignore
+    ctx.Request.Path.ReturnsForAnyArgs (PathString("/FOO/bar")) |> ignore
+    ctx.Response.Body <- new MemoryStream()
+    let expected = "subroute /foo/bar"
+
+    task {
+        let! result = app next ctx
+
+        match result with
+        | None     -> assertFailf "Result was expected to be %s" expected
+        | Some ctx -> Assert.Equal(expected, getBody ctx)
+    }
